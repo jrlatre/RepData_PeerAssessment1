@@ -120,33 +120,17 @@ NAs are only present across entire days. Either we have data for a whole day, or
 
 
 ```r
-# Compute mean steps by interval for each weekday to substitute NAs in every corresponding weekday
+# Compute mean steps by interval for each weekday to substitute NAs in every corresponding weekday, and substitute
 dayOfweek <- weekdays(activity$date)
 activity$dayOfweek <- weekdays(activity$date)
 byWeekday <- group_by(activity, dayOfweek)
-
-monStepsByint <- group_by(filter(byWeekday, dayOfweek=="Monday"), interval)
-monSteps <- summarise(monStepsByint, daySteps=mean(steps, na.rm=TRUE)) # loop across six days?
-wedStepsByint <- group_by(filter(byWeekday, dayOfweek=="Wednesday"), interval)
-wedSteps <- summarise(wedStepsByint, daySteps=mean(steps, na.rm=TRUE))
-thuStepsByint <- group_by(filter(byWeekday, dayOfweek=="Thursday"), interval)
-thuSteps <- summarise(thuStepsByint, daySteps=mean(steps, na.rm=TRUE)) # loop across six days?
-friStepsByint <- group_by(filter(byWeekday, dayOfweek=="Friday"), interval)
-friSteps <- summarise(friStepsByint, daySteps=mean(steps, na.rm=TRUE))
-satStepsByint <- group_by(filter(byWeekday, dayOfweek=="Saturday"), interval)
-satSteps <- summarise(satStepsByint, daySteps=mean(steps, na.rm=TRUE)) # loop across six days?
-sunStepsByint <- group_by(filter(byWeekday, dayOfweek=="Sunday"), interval)
-sunSteps <- summarise(sunStepsByint, daySteps=mean(steps, na.rm=TRUE))
-
-# substitution
 activitynoNA <- activity
 
-activitynoNA$steps[is.na(activitynoNA$steps) & activitynoNA$dayOfweek=="Monday"] <- monSteps$daySteps
-activitynoNA$steps[is.na(activitynoNA$steps) & activitynoNA$dayOfweek=="Wednesday"] <- wedSteps$daySteps
-activitynoNA$steps[is.na(activitynoNA$steps) & activitynoNA$dayOfweek=="Thursday"] <- thuSteps$daySteps
-activitynoNA$steps[is.na(activitynoNA$steps) & activitynoNA$dayOfweek=="Friday"] <- friSteps$daySteps
-activitynoNA$steps[is.na(activitynoNA$steps) & activitynoNA$dayOfweek=="Saturday"] <- satSteps$daySteps
-activitynoNA$steps[is.na(activitynoNA$steps) & activitynoNA$dayOfweek=="Sunday"] <- sunSteps$daySteps
+for (weekday in c("Monday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")) {
+    StepsByint <- group_by(filter(byWeekday, dayOfweek==weekday), interval)
+    daySteps <- summarise(StepsByint, daySteps=mean(steps, na.rm=TRUE))
+    activitynoNA$steps[is.na(activitynoNA$steps) & activitynoNA$dayOfweek==weekday] <- daySteps$daySteps
+}
 
 str(activitynoNA)
 ```
